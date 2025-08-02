@@ -1,0 +1,20 @@
+{
+  "message": {
+    "messageId": "msg-simple",
+    "chatId": "chat-simple",
+    "content": "Bonjour"
+  },
+  "optimizationMode": "speed",
+  "focusMode": "writingAssistant",
+  "history": [],
+  "files": [],
+  "chatModel": {
+    "provider": "deepseek",
+    "name": "deepseek-chat"
+  },
+  "embeddingModel": {
+    "provider": "transformers",
+    "name": "xenova-bge-small-en-v1.5"
+  },
+  "systemInstructions": "Tu es un assistant IA utile."
+} 

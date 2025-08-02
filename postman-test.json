@@ -1,0 +1,69 @@
+{
+  "info": {
+    "name": "Perplexica API Test",
+    "description": "Tests pour l'API Perplexica avec DeepSeek",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Test Configuration API",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/config",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "config"]
+        }
+      }
+    },
+    {
+      "name": "Test Chat API",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": {\n    \"messageId\": \"msg-123\",\n    \"chatId\": \"chat-456\",\n    \"content\": \"quelle temps fait t il a casablanca au maroc en ce moment\"\n  },\n  \"optimizationMode\": \"balanced\",\n  \"focusMode\": \"webSearch\",\n  \"history\": [],\n  \"files\": [],\n  \"chatModel\": {\n    \"provider\": \"deepseek\",\n    \"name\": \"deepseek-chat\"\n  },\n  \"embeddingModel\": {\n    \"provider\": \"transformers\",\n    \"name\": \"xenova-bge-small-en-v1.5\"\n  },\n  \"systemInstructions\": \"Tu es un assistant IA utile.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "chat"]
+        }
+      }
+    },
+    {
+      "name": "Test Search API",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"quelle température fait-il à Casablanca\",\n  \"focusMode\": \"webSearch\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/search",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "search"]
+        }
+      }
+    }
+  ]
+} 
