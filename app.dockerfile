@@ -32,6 +32,6 @@ COPY --from=builder /home/perplexica/migrator/index.js ./migrate.js
 RUN mkdir -p /home/perplexica/data/uploads
 
 # Copy configuration file
-COPY config.toml ./config.toml
+COPY config.toml /home/perplexica/config.toml
 
 CMD ["sh", "-c", "node migrate.js && exec node server.js --port 3000 --hostname 0.0.0.0"]

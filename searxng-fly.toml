@@ -1,20 +1,19 @@
-# fly.toml app configuration file generated for perplexica on 2024-01-01T00:00:00Z
+# fly.toml app configuration file for SearXNG
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 
-app = "deepsearch"
+app = "searxng-deepsearch"
 primary_region = "cdg"
 
 [build]
-  dockerfile = "app.dockerfile"
+  dockerfile = "searxng.dockerfile"
 
 [env]
-  PORT = "3000"
+  PORT = "8080"
   NODE_ENV = "production"
-  SEARXNG_API_URL = "https://searx.thegpm.org"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
@@ -31,8 +30,4 @@ primary_region = "cdg"
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory_mb = 1024
-
-[[mounts]]
-  source = "perplexica_data"
-  destination = "/home/perplexica/data" 
+  memory_mb = 512 
