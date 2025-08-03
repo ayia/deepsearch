@@ -11,11 +11,12 @@ search:
   default_lang: "en"
   ban_time_on_fail: 5
   max_ban_time_on_fail: 120
+  default_doi_resolver: "doi.org"
 
 server:
   port: 8080
   bind_address: "0.0.0.0"
-  secret_key: "your-secret-key-here"
+  secret_key: ""
   base_url: false
   image_proxy: false
   http_protocol_version: "1.0"
