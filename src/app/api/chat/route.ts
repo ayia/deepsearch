@@ -50,6 +50,7 @@ type Body = {
   chatModel: ChatModel;
   embeddingModel: EmbeddingModel;
   systemInstructions: string;
+  stream?: boolean; // Nouveau paramètre pour contrôler le streaming
 };
 
 const handleEmitterEvents = async (
@@ -292,6 +293,40 @@ export const POST = async (req: Request) => {
       body.systemInstructions,
     );
 
+    // Si stream: false, retourner une réponse simple
+    if (body.stream === false) {
+      return new Promise<Response>((resolve) => {
+        let responseText = '';
+        let sources: any[] = [];
+
+        stream.on('data', (data) => {
+          const parsedData = JSON.parse(data);
+          if (parsedData.type === 'response') {
+            responseText += parsedData.data;
+          } else if (parsedData.type === 'sources') {
+            sources = parsedData.data;
+          }
+        });
+
+        stream.on('end', () => {
+          resolve(Response.json({
+            type: 'message',
+            data: responseText,
+            sources: sources,
+            messageId: aiMessageId,
+          }));
+        });
+
+        stream.on('error', (error) => {
+          resolve(Response.json({
+            type: 'error',
+            data: 'An error occurred while processing your request',
+          }, { status: 500 }));
+        });
+      });
+    }
+
+    // Mode streaming par défaut
     const responseStream = new TransformStream();
     const writer = responseStream.writable.getWriter();
     const encoder = new TextEncoder();

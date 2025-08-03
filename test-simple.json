@@ -1,20 +1,23 @@
 {
+  "content": "Analyse les cryptomonnaies BTC, ETH, BCH, LTC. Donne-moi un aperçu du marché actuel avec les prix, volumes et tendances principales.",
   "message": {
-    "messageId": "msg-simple",
-    "chatId": "chat-simple",
-    "content": "Bonjour"
+    "messageId": "test123",
+    "chatId": "test456",
+    "content": "Analyse les cryptomonnaies BTC, ETH, BCH, LTC. Donne-moi un aperçu du marché actuel avec les prix, volumes et tendances principales."
   },
-  "optimizationMode": "speed",
-  "focusMode": "writingAssistant",
-  "history": [],
+  "chatId": "test456",
   "files": [],
+  "focusMode": "webSearch",
+  "optimizationMode": "balanced",
+  "history": [],
   "chatModel": {
-    "provider": "deepseek",
-    "name": "deepseek-chat"
+    "name": "deepseek-chat",
+    "provider": "deepseek"
   },
   "embeddingModel": {
-    "provider": "transformers",
-    "name": "xenova-bge-small-en-v1.5"
+    "name": "xenova-bge-small-en-v1.5",
+    "provider": "transformers"
   },
-  "systemInstructions": "Tu es un assistant IA utile."
+  "systemInstructions": null,
+  "stream": false
 } 
