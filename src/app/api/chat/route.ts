@@ -115,12 +115,22 @@ const handleEmitterEvents = async (
       .execute();
   });
   stream.on('error', (data) => {
-    const parsedData = JSON.parse(data);
+    console.error('Stream error:', data);
+    let errorMessage = 'An error occurred while processing your request';
+    
+    try {
+      const parsedData = JSON.parse(data);
+      errorMessage = parsedData.data || errorMessage;
+    } catch (e) {
+      // If data is not JSON, use it as string
+      errorMessage = typeof data === 'string' ? data : errorMessage;
+    }
+    
     writer.write(
       encoder.encode(
         JSON.stringify({
           type: 'error',
-          data: parsedData.data,
+          data: errorMessage,
         }),
       ),
     );

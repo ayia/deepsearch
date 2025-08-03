@@ -226,6 +226,19 @@ class MetaSearchAgent implements MetaSearchAgentType {
               }),
           );
 
+          // If no search results, create a fallback response
+          if (documents.length === 0) {
+            console.warn('No search results found, creating fallback response');
+            const fallbackDoc = new Document({
+              pageContent: `I couldn't find specific information about "${question}" through web search. However, I can help you with general information or answer questions based on my training data. Please try rephrasing your question or ask something more general.`,
+              metadata: {
+                title: 'No search results',
+                url: 'fallback',
+              },
+            });
+            return { query: question, docs: [fallbackDoc] };
+          }
+
           return { query: question, docs: documents };
         }
       }),
@@ -475,25 +488,53 @@ class MetaSearchAgent implements MetaSearchAgentType {
   ) {
     const emitter = new eventEmitter();
 
-    const answeringChain = await this.createAnsweringChain(
-      llm,
-      fileIds,
-      embeddings,
-      optimizationMode,
-      systemInstructions,
-    );
+    // Add timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      console.error('Search and answer timeout after 120 seconds');
+      emitter.emit('error', JSON.stringify({
+        type: 'error',
+        data: 'Request timeout. Please try again.'
+      }));
+    }, 120000); // 120 seconds timeout
 
-    const stream = answeringChain.streamEvents(
-      {
-        chat_history: history,
-        query: message,
-      },
-      {
-        version: 'v1',
-      },
-    );
+    try {
+      const answeringChain = await this.createAnsweringChain(
+        llm,
+        fileIds,
+        embeddings,
+        optimizationMode,
+        systemInstructions,
+      );
 
-    this.handleStream(stream, emitter);
+      const stream = answeringChain.streamEvents(
+        {
+          chat_history: history,
+          query: message,
+        },
+        {
+          version: 'v1',
+        },
+      );
+
+      this.handleStream(stream, emitter);
+      
+      // Clear timeout when stream ends
+      emitter.on('end', () => {
+        clearTimeout(timeout);
+      });
+      
+      emitter.on('error', () => {
+        clearTimeout(timeout);
+      });
+
+    } catch (error) {
+      clearTimeout(timeout);
+      console.error('Error in searchAndAnswer:', error);
+      emitter.emit('error', JSON.stringify({
+        type: 'error',
+        data: 'An error occurred while processing your request. Please try again.'
+      }));
+    }
 
     return emitter;
   }

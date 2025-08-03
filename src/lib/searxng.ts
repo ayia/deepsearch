@@ -19,30 +19,92 @@ interface SearxngSearchResult {
   iframe_src?: string;
 }
 
+// Fallback SearXNG instances - Updated based on searx.space reliability
+const FALLBACK_INSTANCES = [
+  'https://searx.bar',
+  'https://searx.tiekoetter.com',
+  'https://searx.prvcy.eu',
+  'https://searx.be',
+  'https://search.brave.com'
+];
+
 export const searchSearxng = async (
   query: string,
   opts?: SearxngSearchOptions,
 ) => {
-  const searxngURL = getSearxngApiEndpoint();
+  let searxngURL = getSearxngApiEndpoint();
+  let lastError: any = null;
 
-  const url = new URL(`${searxngURL}/search?format=json`);
-  url.searchParams.append('q', query);
+  // Try the configured URL first
+  try {
+    const url = new URL(`${searxngURL}/search?format=json`);
+    url.searchParams.append('q', query);
 
-  if (opts) {
-    Object.keys(opts).forEach((key) => {
-      const value = opts[key as keyof SearxngSearchOptions];
-      if (Array.isArray(value)) {
-        url.searchParams.append(key, value.join(','));
-        return;
+    if (opts) {
+      Object.keys(opts).forEach((key) => {
+        const value = opts[key as keyof SearxngSearchOptions];
+        if (Array.isArray(value)) {
+          url.searchParams.append(key, value.join(','));
+          return;
+        }
+        url.searchParams.append(key, value as string);
+      });
+    }
+
+    const res = await axios.get(url.toString(), {
+      timeout: 30000, // 30 second timeout
+      headers: {
+        'User-Agent': 'Perplexica/1.0'
       }
-      url.searchParams.append(key, value as string);
     });
+
+    const results: SearxngSearchResult[] = res.data.results;
+    const suggestions: string[] = res.data.suggestions;
+
+    return { results, suggestions };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`SearXNG instance ${searxngURL} failed:`, errorMessage);
+    lastError = error;
   }
 
-  const res = await axios.get(url.toString());
+  // Try fallback instances
+  for (const fallbackURL of FALLBACK_INSTANCES) {
+    try {
+      const url = new URL(`${fallbackURL}/search?format=json`);
+      url.searchParams.append('q', query);
 
-  const results: SearxngSearchResult[] = res.data.results;
-  const suggestions: string[] = res.data.suggestions;
+      if (opts) {
+        Object.keys(opts).forEach((key) => {
+          const value = opts[key as keyof SearxngSearchOptions];
+          if (Array.isArray(value)) {
+            url.searchParams.append(key, value.join(','));
+            return;
+          }
+          url.searchParams.append(key, value as string);
+        });
+      }
 
-  return { results, suggestions };
+      const res = await axios.get(url.toString(), {
+        timeout: 30000,
+        headers: {
+          'User-Agent': 'Perplexica/1.0'
+        }
+      });
+
+      const results: SearxngSearchResult[] = res.data.results;
+      const suggestions: string[] = res.data.suggestions;
+
+      console.log(`Using fallback SearXNG instance: ${fallbackURL}`);
+      return { results, suggestions };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(`Fallback SearXNG instance ${fallbackURL} failed:`, errorMessage);
+      lastError = error;
+    }
+  }
+
+  // If all instances fail, return empty results
+  console.error('All SearXNG instances failed:', lastError);
+  return { results: [], suggestions: [] };
 };
