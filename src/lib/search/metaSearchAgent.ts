@@ -230,9 +230,9 @@ class MetaSearchAgent implements MetaSearchAgentType {
           if (documents.length === 0) {
             console.warn('No search results found, creating fallback response');
             const fallbackDoc = new Document({
-              pageContent: `I couldn't find specific information about "${question}" through web search. However, I can help you with general information or answer questions based on my training data. Please try rephrasing your question or ask something more general.`,
+              pageContent: `Based on my knowledge, I can provide information about "${question}". While I couldn't access real-time web search results from the SearXNG API, I can help you with general information and answer questions based on my training data. For the most current information, you might want to try rephrasing your question or ask something more general.`,
               metadata: {
-                title: 'No search results',
+                title: 'Knowledge-based response',
                 url: 'fallback',
               },
             });

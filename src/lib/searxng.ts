@@ -19,42 +19,36 @@ interface SearxngSearchResult {
   iframe_src?: string;
 }
 
-// Fallback SearXNG instances - Updated based on searx.space reliability
-const FALLBACK_INSTANCES = [
-  'https://searx.bar',
-  'https://searx.tiekoetter.com',
-  'https://searx.prvcy.eu',
-  'https://searx.be',
-  'https://searx.thegpm.org'
-];
-
 export const searchSearxng = async (
   query: string,
   opts?: SearxngSearchOptions,
 ) => {
-  let searxngURL = getSearxngApiEndpoint();
-  let lastError: any = null;
+  const searxngURL = getSearxngApiEndpoint();
 
-  // Try the configured URL first
+  const url = new URL(`${searxngURL}/search?format=json`);
+  url.searchParams.append('q', query);
+
+  if (opts) {
+    Object.keys(opts).forEach((key) => {
+      const value = opts[key as keyof SearxngSearchOptions];
+      if (Array.isArray(value)) {
+        url.searchParams.append(key, value.join(','));
+        return;
+      }
+      url.searchParams.append(key, value as string);
+    });
+  }
+
   try {
-    const url = new URL(`${searxngURL}/search?format=json`);
-    url.searchParams.append('q', query);
-
-    if (opts) {
-      Object.keys(opts).forEach((key) => {
-        const value = opts[key as keyof SearxngSearchOptions];
-        if (Array.isArray(value)) {
-          url.searchParams.append(key, value.join(','));
-          return;
-        }
-        url.searchParams.append(key, value as string);
-      });
-    }
-
     const res = await axios.get(url.toString(), {
-      timeout: 30000, // 30 second timeout
+      timeout: 1200000, // 20 minutes timeout - increased for SearXNG instance
       headers: {
-        'User-Agent': 'Perplexica/1.0'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Referer': searxngURL
       }
     });
 
@@ -69,54 +63,9 @@ export const searchSearxng = async (
 
     return { results, suggestions };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn(`SearXNG instance ${searxngURL} failed:`, errorMessage);
-    lastError = error;
+    console.error(`SearXNG API error for ${searxngURL}:`, error);
+    
+    // Return empty results instead of throwing
+    return { results: [], suggestions: [] };
   }
-
-  // Try fallback instances
-  for (const fallbackURL of FALLBACK_INSTANCES) {
-    try {
-      const url = new URL(`${fallbackURL}/search?format=json`);
-      url.searchParams.append('q', query);
-
-      if (opts) {
-        Object.keys(opts).forEach((key) => {
-          const value = opts[key as keyof SearxngSearchOptions];
-          if (Array.isArray(value)) {
-            url.searchParams.append(key, value.join(','));
-            return;
-          }
-          url.searchParams.append(key, value as string);
-        });
-      }
-
-      const res = await axios.get(url.toString(), {
-        timeout: 30000,
-        headers: {
-          'User-Agent': 'Perplexica/1.0'
-        }
-      });
-
-      // Check if the response has the expected structure
-      if (!res.data || !Array.isArray(res.data.results)) {
-        console.warn(`Invalid response structure from ${fallbackURL}:`, res.data);
-        throw new Error('Invalid response structure');
-      }
-
-      const results: SearxngSearchResult[] = res.data.results;
-      const suggestions: string[] = res.data.suggestions || [];
-
-      console.log(`Using fallback SearXNG instance: ${fallbackURL}`);
-      return { results, suggestions };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn(`Fallback SearXNG instance ${fallbackURL} failed:`, errorMessage);
-      lastError = error;
-    }
-  }
-
-  // If all instances fail, return empty results
-  console.error('All SearXNG instances failed:', lastError);
-  return { results: [], suggestions: [] };
 };
