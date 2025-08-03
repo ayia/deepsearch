@@ -25,7 +25,7 @@ const FALLBACK_INSTANCES = [
   'https://searx.tiekoetter.com',
   'https://searx.prvcy.eu',
   'https://searx.be',
-  'https://search.brave.com'
+  'https://searx.thegpm.org'
 ];
 
 export const searchSearxng = async (
@@ -58,8 +58,14 @@ export const searchSearxng = async (
       }
     });
 
+    // Check if the response has the expected structure
+    if (!res.data || !Array.isArray(res.data.results)) {
+      console.warn(`Invalid response structure from ${searxngURL}:`, res.data);
+      throw new Error('Invalid response structure');
+    }
+
     const results: SearxngSearchResult[] = res.data.results;
-    const suggestions: string[] = res.data.suggestions;
+    const suggestions: string[] = res.data.suggestions || [];
 
     return { results, suggestions };
   } catch (error) {
@@ -92,8 +98,14 @@ export const searchSearxng = async (
         }
       });
 
+      // Check if the response has the expected structure
+      if (!res.data || !Array.isArray(res.data.results)) {
+        console.warn(`Invalid response structure from ${fallbackURL}:`, res.data);
+        throw new Error('Invalid response structure');
+      }
+
       const results: SearxngSearchResult[] = res.data.results;
-      const suggestions: string[] = res.data.suggestions;
+      const suggestions: string[] = res.data.suggestions || [];
 
       console.log(`Using fallback SearXNG instance: ${fallbackURL}`);
       return { results, suggestions };

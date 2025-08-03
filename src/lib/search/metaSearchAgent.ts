@@ -495,7 +495,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
         type: 'error',
         data: 'Request timeout. Please try again.'
       }));
-    }, 120000); // 120 seconds timeout
+    }, 1200000); // 120 seconds timeout
 
     try {
       const answeringChain = await this.createAnsweringChain(
